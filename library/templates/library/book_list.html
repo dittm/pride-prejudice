@@ -1,0 +1,150 @@
+{% extends "library/base.html" %}
+
+{% block content %}
+  <div class="container">
+    <div class="row">
+      <div class="col-md-12">
+        <h1>Explore our selected books</h1>
+        <div class="col-md-12">
+          <div class="card mb-3">
+            <div class="card-body">
+              <form action="" method="get" id="category-filter-form">
+                <div class="row">
+                  <div class="col-md-3">
+                    <label for="category">Filter by Category:</label>
+                  </div>
+                  <div class="col-md-6">
+                    <select name="category" id="category" class="form-select">
+                      <option value="">All Categories</option>
+                      {% for category in categories %}
+                        <option value="{{ category.name }}" {% if selected_category == category.name %}selected{% endif %}>{{ category.name }}</option>
+                      {% endfor %}
+                    </select>
+                  </div>
+                  <div class="col-md-3">
+                    <button type="submit" class="btn btn-outline-light w-100">Apply</button>
+                  </div>
+                </div>
+              </form>
+            </div>
+          </div>
+
+        {% for book in page_obj %}
+          <div class="book-container">
+            <div class="book-info" onclick="showBookDetails('{{ request.scheme }}://{{ request.get_host }}{{ MEDIA_URL }}{{ book.image.url|escapejs }}', '{{ book.name|escapejs }}', '{{ book.author|escapejs }}', '{{ book.isbn|escapejs }}', '{{ book.category|escapejs }}', '{{ book.description|escapejs }}','{{ book.isbn|escapejs }}')">
+              <!-- When the image is clicked, show the offcanvas with the book's details -->
+              <img src="{{ book.image.url }}" alt="{{ book.name }} Image" data-bs-toggle="offcanvas" data-bs-target="#offcanvasRight">
+              <div class="book-details">
+                <h2>{{ book.name }}</h2>
+                <p>Author: {{ book.author }}</p>
+                <p>ISBN: {{ book.isbn }}</p>
+                <p>Category: {{ book.category }}</p>
+                <button type="button" class="btn btn-outline-dark">View Details</button>
+              </div>
+            </div>
+          </div>
+        {% endfor %}
+        <nav aria-label="Page navigation example">
+          <ul class="pagination pagination-custom">
+            {% if page_obj.has_previous %}
+              <li class="page-item"><a class="page-link" href="?page=1">First</a></li>
+              <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a></li>
+            {% endif %}
+
+            {% for num in page_obj.paginator.page_range %}
+              {% if page_obj.number == num %}
+                <li class="page-item active"><a class="page-link" href="?page={{ num }}">{{ num }}</a></li>
+              {% else %}
+                <li class="page-item"><a class="page-link" href="?page={{ num }}">{{ num }}</a></li>
+              {% endif %}
+            {% endfor %}
+
+            {% if page_obj.has_next %}
+              <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a></li>
+              <li class="page-item"><a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">Last</a></li>
+            {% endif %}
+          </ul>
+        </nav>
+      </div>
+    </div>
+  </div>
+
+  <div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasRight" aria-labelledby="offcanvasRightLabel">
+    <div class="offcanvas-header">
+      <h5 id="offcanvasTitle">Book Details</h5>
+      <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+    </div>
+    <div class="offcanvas-body" id="offcanvasBody">
+    </div>
+  </div>
+
+<style>
+
+
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+var offcanvasElementList = [].slice.call(document.querySelectorAll('.offcanvas'))
+var offcanvasList = offcanvasElementList.map(function (offcanvasEl) {
+  return new bootstrap.Offcanvas(offcanvasEl)
+})
+var csrfToken = '{{ csrf_token }}';
+
+function showBookDetails(imageUrl, name, author, isbn, category, description) {
+    // Update the offcanvas title
+    document.getElementById('offcanvasTitle').innerText = name;
+
+    // Populate the offcanvas body with the book's details
+    document.getElementById('offcanvasBody').innerHTML = `
+        <figure class="book-image">
+          <img src="${imageUrl}" alt="${name} Image" class="img-fluid"/>
+          <figcaption class="book-title">${name}</figcaption>
+        </figure>
+        <section class="book-details">
+          <p><span class="detail-label">Author:</span> ${author}</p>
+          <p><span class="detail-label">ISBN:</span> ${isbn}</p>
+          <p><span class="detail-label">Category:</span> ${category}</p>
+        </section>
+        <section class="book-description">
+          <p><span class="detail-label">Description:</span> ${description}</p>
+        </section>
+        <section class="book-actions">
+          {% if user.is_authenticated %}
+            <button class="action-button btn btn-outline-dark" onclick="borrowBook('${isbn}')">Want to Read</button>
+          {% else %}
+            <a class="action-button btn btn-outline-dark" href="{% url 'login' %}?next=/borrow-book/" role="button">Login to Borrow</a>
+          {% endif %}
+        </section>
+    `;
+
+    var offcanvasRight = new bootstrap.Offcanvas(document.getElementById('offcanvasRight'))
+    offcanvasRight.show()
+}
+
+
+function borrowBook(isbn) {
+    if (isbn === 'undefined') {
+        console.error("ISBN is not available.");
+        return;
+    }
+
+    $.ajax({
+        type: "POST",
+        url: `/borrow-book/${isbn}/`,
+        data: {
+            'csrfmiddlewaretoken': csrfToken,
+        },
+        success: function(data) {
+            location.reload();
+        },
+        error: function(xhr, status, error) {
+            console.error("Error borrowing the book:", error);
+        }
+    });
+}
+
+
+</script>
+{% endblock %}

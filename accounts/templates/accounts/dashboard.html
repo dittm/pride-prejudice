@@ -1,0 +1,63 @@
+{% extends "library/base.html" %}
+
+{% block content %}
+  <div class="container">
+    <div class="row">
+      <div class="col-md-12">
+        <h1>Dashboard</h1>
+        <h3>TBR List</h3>
+        {% if borrowed_books %}
+          <ul>
+            {% for book in borrowed_books %}
+              <li>
+                {{ book.name }} by {{ book.author }}
+                <button class="btn btn-outline-danger" onclick="returnBook('{{ book.isbn }}')">Remove</button>
+              </li>
+            {% endfor %}
+          </ul>
+        {% else %}
+          <p>You have not selected any books yet.</p>
+        {% endif %}
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-md-12">
+        <h3>Read Books</h3>
+          <p>You have not marked any books as read yet. See <a target="_blank" href="https://www.wikihow.com/Remember-What-You-Read" title="WikiHow: Remember-What-You-Read">more</a>.</p>
+      </div>
+    </div>
+  </div>
+
+<style>
+  h1 {
+    padding-top: 10px;
+    padding-bottom: 10px;
+  	}
+
+  a, a:hover {
+    color: #000;
+  }
+  </style>
+
+  {% block extra_js %}
+    <script>
+      var csrfToken = '{{ csrf_token }}';
+
+      function returnBook(isbn) {
+        $.ajax({
+          type: "POST",
+          url: `/return-book/${isbn}/`,
+          data: {
+            'csrfmiddlewaretoken': csrfToken,
+          },
+          success: function(data) {
+            location.reload();
+          },
+          error: function(xhr, status, error) {
+            console.error("Error returning the book:", error);
+          }
+        });
+      }
+    </script>
+  {% endblock %}
+{% endblock %}

@@ -1,0 +1,38 @@
+.book-container {
+    display: flex;
+    flex-direction: row;
+    margin-bottom: 20px;
+  }
+  
+.book-info {
+    display: flex;
+    align-items: flex-start;
+  }
+  
+.book-info img {
+    width: 200px;
+    margin-right: 20px;
+  }
+  
+.book-details {
+    flex: 1;
+  }
+
+a.nav-link {
+  color: #000 !important;
+}
+
+.nav-link {
+  font-size: 1.4em;
+}
+
+.center-image {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+  width: 50%;
+}
+
+.nav {
+  background-color: #E2DCC8; padding-top: 20px; padding-bottom: 20px;
+}

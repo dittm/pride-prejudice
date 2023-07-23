@@ -1,0 +1,21 @@
+{% extends "library/base.html" %}
+
+{% load static %}
+
+{% block content %}
+<img src="{% static 'blog/one-of-us.png' %}" alt="Become one of us"/>
+<h2>Register</h2>
+<form method="POST">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit" class="btn btn-outline-dark">Register</button>
+</form>
+
+<style>
+    h2 {
+        padding-top: 10px;
+        padding-bottom: 10px;
+    }
+</style>
+
+{% endblock %}
